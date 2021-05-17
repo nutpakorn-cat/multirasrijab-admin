@@ -8,7 +8,7 @@
         </select>
         <h3>ชื่อนักศึกษา</h3>
         <select @change="onChangeData2" v-model="selectedWorkOwnerId" class="form-select">
-            <option v-for="eachWork in data.workList" :key="eachWork.entityId" :value="eachWork.workOwnerId">{{eachWork.workName}} - {{eachWork.workOwnerName}}</option>
+            <option v-for="eachWork in data.workList" :key="eachWork.entityId" :value="eachWork.workOwnerId">{{eachWork.workId}} - {{eachWork.workName}} - {{eachWork.workOwnerName}}</option>
         </select>
         <br><br>
         <h1>เพิ่มข้อมูลงานเพิ่มเติม</h1>
