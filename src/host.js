@@ -1,0 +1,1 @@
+module.exports = 'https://k5lbovr518.execute-api.ap-southeast-1.amazonaws.com';
