@@ -152,7 +152,7 @@ export default {
                 await axios.post(require('./../../host') + '/admin/media', {
                     mediaType: this.mediaType,
                     mediaClip: this.mediaData,
-                    mediaPath: 'https://play-lh.googleusercontent.com/lMoItBgdPPVDJsNOVtP26EKHePkwBg-PkuY9NOrc-fumRtTFP4XhpUNk_22syN4Datc',
+                    mediaPath: 'https://yt3.ggpht.com/ytc/AAUvwnjDwLJeWs_jcgoVvQpC7YZxWMwP-N__UH-98dxGyw=s900-c-k-c0x00ffffff-no-rj',
                     workOwnerId: this.selectedWorkOwnerId
                 });
             this.fetchData(false);
