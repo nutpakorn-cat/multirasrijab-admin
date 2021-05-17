@@ -7,7 +7,7 @@
             <option v-for="eachTopic in data.topicList" :key="eachTopic.entityId" :value="eachTopic.entityId">{{eachTopic.topicName}}</option>
         </select>
         <h3>ชื่อนักศึกษา</h3>
-        <select @change="onChangeData" v-model="selectedWorkOwnerId" class="form-select">
+        <select @change="onChangeData2" v-model="selectedWorkOwnerId" class="form-select">
             <option v-for="eachWork in data.workList" :key="eachWork.entityId" :value="eachWork.workOwnerId">{{eachWork.workName}} - {{eachWork.workOwnerName}}</option>
         </select>
         <br><br>
@@ -111,6 +111,12 @@ export default {
             });
             this.data.mediaList = data3.data;
         },
+        async onChangeData2() {
+            const data3 = await axios.post(require('./../../host') + '/media', {
+                workOwnerId: this.selectedWorkOwnerId
+            });
+            this.data.mediaList = data3.data;
+        },
         async update(entityId, i) {
 
             if (!(('mediaClip') in this.data.mediaList[i]))
@@ -146,6 +152,7 @@ export default {
                 await axios.post(require('./../../host') + '/admin/media', {
                     mediaType: this.mediaType,
                     mediaClip: this.mediaData,
+                    mediaPath: 'https://play-lh.googleusercontent.com/lMoItBgdPPVDJsNOVtP26EKHePkwBg-PkuY9NOrc-fumRtTFP4XhpUNk_22syN4Datc',
                     workOwnerId: this.selectedWorkOwnerId
                 });
             this.fetchData(false);
