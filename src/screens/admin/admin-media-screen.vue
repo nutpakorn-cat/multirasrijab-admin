@@ -20,8 +20,14 @@
                     <option value="image">รูปภาพ</option>
                     <option value="youtube">วิดิโอ</option>
                 </select>
-                <p class="card-title">URL ผลงาน</p>
-                <input type="text" class="form-control" v-model="mediaData" style="margin-bottom: 15px;">
+                <div v-if="mediaType == 'youtube'">
+                    <p class="card-title">URL ผลงาน (กดปุ่ม SHARE ใน Youtube แล้วจะได้ลิงค์แบบนี้มา เช่น https://youtu.be/ABCDEF-GHI)</p>
+                    <input type="text" class="form-control" v-model="mediaData" style="margin-bottom: 15px;">
+                </div>
+                <div v-else>
+                    <p class="card-title">ภาพผลงาน</p>
+                    <Uploader :onChangeCallback="processFile" />
+                </div>
                 <br>
                 <div><button @click="addData" class="btn btn-success" style="width: 100%">เพิ่ม</button></div>
             </div>
@@ -38,8 +44,8 @@
                             <option value="youtube">วิดิโอ</option>
                         </select>
                         <div v-if="data.mediaList[i].mediaType == 'image'">
-                            <p class="card-title">URL ผลงาน</p>
-                            <input type="text" class="form-control" v-model="data.mediaList[i].mediaPath" style="margin-bottom: 15px;">
+                            <p class="card-title">ผลงาน</p>
+                            <Uploader :onChangeCallback="(e) => { processFiles(e, each.entityId) }" />
                         </div>
                         <div v-if="data.mediaList[i].mediaType == 'youtube'">
                             <p class="card-title">URL ผลงาน</p>
@@ -54,10 +60,14 @@
 </template>
 
 <script>
+import Uploader from './../../components/uploader.vue';
 import axios from 'axios';
 
 export default {
     name: 'AdminMedia',
+    components: {
+        Uploader
+    },
     data() {
         return {
             data: {
@@ -68,13 +78,21 @@ export default {
             selectedTopicId: '',
             selectedWorkOwnerId: '',
             mediaType: 'image',
-            mediaData: ''
+            mediaData: '',
+            file: undefined,
+            files: {}
         }
     },
     created() {
         this.fetchData(true);
     },
     methods: {
+        processFile(e) {
+            this.file = e.target.files[0];
+        },
+        processFiles(e, id) {
+            this.files[id] = e.target.files[0];
+        },
         async fetchData(isCreated) {
             const data = await axios.get(require('./../../host') + '/navbar');
             this.data.topicList = data.data;
@@ -125,12 +143,43 @@ export default {
             if (!(('mediaPath') in this.data.mediaList[i]))
                 this.data.mediaList[i].mediaPath = '';
 
-            await axios.put(require('./../../host') + '/admin/media', {
-                entityId,
-                mediaType: this.data.mediaList[i].mediaType,
-                mediaClip: this.data.mediaList[i].mediaClip,
-                mediaPath: this.data.mediaList[i].mediaPath
-            });
+            if (this.data.mediaList[i].mediaType == 'image') {
+                const file = this.files[entityId];
+
+                if (file == undefined) {
+                    return;
+                }
+
+                let extension = '';
+
+                if (file['type'] == 'image/jpeg') {
+                    extension = '.jpg';
+                } else if (file['type'] == 'image/png') {
+                    extension = '.png';
+                } else {
+                    return;
+                }
+
+                const imageOutput = await axios.post('https://k5lbovr518.execute-api.ap-southeast-1.amazonaws.com/admin/image', {
+                    extension
+                });
+
+                await fetch(imageOutput.data.url, { method: 'PUT', body: file });
+                await axios.put(require('./../../host') + '/admin/media', {
+                    entityId,
+                    mediaType: this.data.mediaList[i].mediaType,
+                    mediaClip: this.data.mediaList[i].mediaClip.replace('youtu.be/', 'youtube.com/embed/'),
+                    mediaPath: imageOutput.data.outputUrl
+                });
+            } else {
+                await axios.put(require('./../../host') + '/admin/media', {
+                    entityId,
+                    mediaType: this.data.mediaList[i].mediaType,
+                    mediaClip: this.data.mediaList[i].mediaClip.replace('youtu.be/', 'youtube.com/embed/'),
+                    mediaPath: this.data.mediaList[i].mediaPath
+                });
+            }
+            alert('แก้ไขข้อมูลสำเร็จ');
             this.fetchData(false);
         },
         async deleteData(entityId) {
@@ -139,22 +188,47 @@ export default {
                     entityId
                 },
             });
+            alert('ลบข้อมูลสำเร็จ');
             this.fetchData(false);
         },
         async addData() {
-            if (this.mediaType == 'image') 
+            if (this.mediaType == 'image') {
+
+                const file = this.file;
+
+                if (file == undefined) {
+                    return;
+                }
+
+                let extension = '';
+
+                if (file['type'] == 'image/jpeg') {
+                    extension = '.jpg';
+                } else if (file['type'] == 'image/png') {
+                    extension = '.png';
+                } else {
+                    return;
+                }
+
+                const imageOutput = await axios.post('https://k5lbovr518.execute-api.ap-southeast-1.amazonaws.com/admin/image', {
+                    extension
+                });
+
+                await fetch(imageOutput.data.url, { method: 'PUT', body: file });
+
                 await axios.post(require('./../../host') + '/admin/media', {
                     mediaType: this.mediaType,
-                    mediaPath: this.mediaData,
+                    mediaPath: imageOutput.data.outputUrl,
                     workOwnerId: this.selectedWorkOwnerId
                 });
-            else
+            } else
                 await axios.post(require('./../../host') + '/admin/media', {
                     mediaType: this.mediaType,
-                    mediaClip: this.mediaData,
+                    mediaClip: this.mediaData.replace('youtu.be/', 'youtube.com/embed/'),
                     mediaPath: 'https://yt3.ggpht.com/ytc/AAUvwnjDwLJeWs_jcgoVvQpC7YZxWMwP-N__UH-98dxGyw=s900-c-k-c0x00ffffff-no-rj',
                     workOwnerId: this.selectedWorkOwnerId
                 });
+            alert('เพิ่มข้อมูลสำเร็จ');
             this.fetchData(false);
         }
     }

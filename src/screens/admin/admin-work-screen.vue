@@ -17,12 +17,12 @@
                 <input type="text" class="form-control" v-model="workName" style="margin-bottom: 15px;" required>
                 <p class="card-title">คำอธิบายโดยย่อ</p>
                 <input type="text" class="form-control" v-model="workText" style="margin-bottom: 15px;" required>
-                <p class="card-title">รูปผลงาน</p>
-                <input type="text" class="form-control" v-model="workImage" style="margin-bottom: 15px;" required>
+                <p class="card-title">รูปปกผลงาน</p>
+                <Uploader :onChangeCallback="processFile" />
                 <p class="card-title">รหัสประจำตัวเจ้าของผลงาน</p>
                 <input type="text" class="form-control" v-model="workOwnerId" style="margin-bottom: 15px;" required>
                 <p class="card-title">รูปเจ้าของผลงาน</p>
-                <input type="text" class="form-control" v-model="workOwnerImage" style="margin-bottom: 15px;" required>
+                <Uploader :onChangeCallback="processPicture" />
                 <p class="card-title">ชื่อเจ้าของผลงาน</p>
                 <input type="text" class="form-control" v-model="workOwnerName" style="margin-bottom: 15px;" required>
                 <p class="card-title">Journal link</p>
@@ -52,11 +52,11 @@
                         <p class="card-title">คำอธิบายโดยย่อ</p>
                         <input type="text" class="form-control" v-model="data.workList[i].workText" style="margin-bottom: 15px;" required>
                         <p class="card-title">รูปผลงาน</p>
-                        <input type="text" class="form-control" v-model="data.workList[i].workImage" style="margin-bottom: 15px;" required>
+                        <Uploader :onChangeCallback="(e) => { processFiles(e, each.entityId) }" />
                         <p class="card-title">รหัสประจำตัวเจ้าของผลงาน</p>
                         <input type="text" class="form-control" v-model="data.workList[i].workOwnerId" style="margin-bottom: 15px;" required>
                         <p class="card-title">รูปเจ้าของผลงาน</p>
-                        <input type="text" class="form-control" v-model="data.workList[i].workOwnerImage" style="margin-bottom: 15px;" required>
+                        <Uploader :onChangeCallback="(e) => { processPictures(e, each.entityId) }" />
                         <p class="card-title">ชื่อเจ้าของผลงาน</p>
                         <input type="text" class="form-control" v-model="data.workList[i].workOwnerName" style="margin-bottom: 15px;" required>
                         <p class="card-title">Journal link</p>
@@ -78,10 +78,14 @@
 </template>
 
 <script>
+import Uploader from './../../components/uploader.vue';
 import axios from 'axios';
 
 export default {
     name: 'AdminWork',
+    components: {
+        Uploader
+    },
     data() {
         return {
             data: {
@@ -100,13 +104,29 @@ export default {
             workOwnerFacebook: '',
             workOwnerInstagram: '',
             workOwnerEmail: '',
-            workDescription: ''
+            workDescription: '',
+            file: undefined,
+            picture: undefined,
+            pictures: {},
+            files: {}
         }
     },
     created() {
         this.fetchData(true);
     },
     methods: {
+        processFile(e) {
+            this.file = e.target.files[0];
+        },
+        processFiles(e, id) {
+            this.files[id] = e.target.files[0];
+        },
+        processPicture(e) {
+            this.picture = e.target.files[0];
+        },
+        processPictures(e, id) {
+            this.pictures[id] = e.target.files[0];
+        },
         async fetchData(isCreated) {
             const data = await axios.get(require('./../../host') + '/navbar');
             this.data.topicList = data.data;
@@ -130,22 +150,145 @@ export default {
             this.data.workList = data2.data;
         },
         async update(entityId, i) {
-            await axios.put(require('./../../host') + '/admin/work', {
-                entityId,
-                topicId: this.selectedTopicId,
-                workId: this.data.workList[i].workId,
-                workName: this.data.workList[i].workName,
-                workText: this.data.workList[i].workText,
-                workImage: this.data.workList[i].workImage,
-                workOwnerId: this.data.workList[i].workOwnerId,
-                workOwnerImage: this.data.workList[i].workOwnerImage,
-                workOwnerName: this.data.workList[i].workOwnerName,
-                workOwnerJournal: this.data.workList[i].workOwnerJournal,
-                workOwnerFacebook: this.data.workList[i].workOwnerFacebook,
-                workOwnerInstagram: this.data.workList[i].workOwnerInstagram,
-                workOwnerEmail: this.data.workList[i].workOwnerEmail,
-                workDescription: this.data.workList[i].workDescription
-            });
+            let file = this.files[entityId];
+            let picture = this.pictures[entityId];
+
+            if (file != undefined && file != null && file != '' && picture != undefined && picture != null && picture != '') {
+                let extension = '';
+                let extension2 = '';
+
+                if (file['type'] == 'image/jpeg') {
+                    extension = '.jpg';
+                } else if (file['type'] == 'image/png') {
+                    extension = '.png';
+                } else {
+                    this.isLoad2 = false;
+                    return;
+                }
+
+                if (picture['type'] == 'image/jpeg') {
+                    extension2 = '.jpg';
+                } else if (picture['type'] == 'image/png') {
+                    extension2 = '.png';
+                } else {
+                    this.isLoad2 = false;
+                    return;
+                }
+
+                const imageOutput = await axios.post('https://k5lbovr518.execute-api.ap-southeast-1.amazonaws.com/admin/image', {
+                    extension
+                });
+
+                const imageOutput2 = await axios.post('https://k5lbovr518.execute-api.ap-southeast-1.amazonaws.com/admin/image', {
+                    extension2
+                });
+
+                await fetch(imageOutput.data.url, { method: 'PUT', body: file });
+                await fetch(imageOutput2.data.url, { method: 'PUT', body: picture });
+
+                await axios.put(require('./../../host') + '/admin/work', {
+                    entityId,
+                    topicId: this.selectedTopicId,
+                    workId: this.data.workList[i].workId,
+                    workName: this.data.workList[i].workName,
+                    workText: this.data.workList[i].workText,
+                    workImage: imageOutput.data.outputUrl,
+                    workOwnerId: this.data.workList[i].workOwnerId,
+                    workOwnerImage: imageOutput2.data.outputUrl,
+                    workOwnerName: this.data.workList[i].workOwnerName,
+                    workOwnerJournal: this.data.workList[i].workOwnerJournal,
+                    workOwnerFacebook: this.data.workList[i].workOwnerFacebook,
+                    workOwnerInstagram: this.data.workList[i].workOwnerInstagram,
+                    workOwnerEmail: this.data.workList[i].workOwnerEmail,
+                    workDescription: this.data.workList[i].workDescription
+                });
+            } else if (file != undefined && file != null && file != '') {
+                let extension = '';
+
+                if (file['type'] == 'image/jpeg') {
+                    extension = '.jpg';
+                } else if (file['type'] == 'image/png') {
+                    extension = '.png';
+                } else {
+                    this.isLoad2 = false;
+                    return;
+                }
+
+                const imageOutput = await axios.post('https://k5lbovr518.execute-api.ap-southeast-1.amazonaws.com/admin/image', {
+                    extension
+                });
+
+                await fetch(imageOutput.data.url, { method: 'PUT', body: file });
+
+                await axios.put(require('./../../host') + '/admin/work', {
+                    entityId,
+                    topicId: this.selectedTopicId,
+                    workId: this.data.workList[i].workId,
+                    workName: this.data.workList[i].workName,
+                    workText: this.data.workList[i].workText,
+                    workImage: imageOutput.data.outputUrl,
+                    workOwnerId: this.data.workList[i].workOwnerId,
+                    workOwnerImage: this.data.workList[i].workOwnerImage,
+                    workOwnerName: this.data.workList[i].workOwnerName,
+                    workOwnerJournal: this.data.workList[i].workOwnerJournal,
+                    workOwnerFacebook: this.data.workList[i].workOwnerFacebook,
+                    workOwnerInstagram: this.data.workList[i].workOwnerInstagram,
+                    workOwnerEmail: this.data.workList[i].workOwnerEmail,
+                    workDescription: this.data.workList[i].workDescription
+                });
+            } else if (picture != undefined && picture != null && picture != '') {
+                let extension = '';
+
+                if (picture['type'] == 'image/jpeg') {
+                    extension = '.jpg';
+                } else if (picture['type'] == 'image/png') {
+                    extension = '.png';
+                } else {
+                    this.isLoad2 = false;
+                    return;
+                }
+
+                const imageOutput = await axios.post('https://k5lbovr518.execute-api.ap-southeast-1.amazonaws.com/admin/image', {
+                    extension
+                });
+
+                await fetch(imageOutput.data.url, { method: 'PUT', body: picture });
+
+                await axios.put(require('./../../host') + '/admin/work', {
+                    entityId,
+                    topicId: this.selectedTopicId,
+                    workId: this.data.workList[i].workId,
+                    workName: this.data.workList[i].workName,
+                    workText: this.data.workList[i].workText,
+                    workImage: this.data.workList[i].workImage,
+                    workOwnerId: this.data.workList[i].workOwnerId,
+                    workOwnerImage: imageOutput.data.outputUrl,
+                    workOwnerName: this.data.workList[i].workOwnerName,
+                    workOwnerJournal: this.data.workList[i].workOwnerJournal,
+                    workOwnerFacebook: this.data.workList[i].workOwnerFacebook,
+                    workOwnerInstagram: this.data.workList[i].workOwnerInstagram,
+                    workOwnerEmail: this.data.workList[i].workOwnerEmail,
+                    workDescription: this.data.workList[i].workDescription
+                });
+            } else {
+                await axios.put(require('./../../host') + '/admin/work', {
+                    entityId,
+                    topicId: this.selectedTopicId,
+                    workId: this.data.workList[i].workId,
+                    workName: this.data.workList[i].workName,
+                    workText: this.data.workList[i].workText,
+                    workImage: this.data.workList[i].workImage,
+                    workOwnerId: this.data.workList[i].workOwnerId,
+                    workOwnerImage: this.data.workList[i].workOwnerImage,
+                    workOwnerName: this.data.workList[i].workOwnerName,
+                    workOwnerJournal: this.data.workList[i].workOwnerJournal,
+                    workOwnerFacebook: this.data.workList[i].workOwnerFacebook,
+                    workOwnerInstagram: this.data.workList[i].workOwnerInstagram,
+                    workOwnerEmail: this.data.workList[i].workOwnerEmail,
+                    workDescription: this.data.workList[i].workDescription
+                });
+            }
+            alert('แก้ไขข้อมูลเสร็จสิ้น');
             this.fetchData(false);
         },
         async deleteData(entityId) {
@@ -154,17 +297,61 @@ export default {
                     entityId: entityId
                 },
             });
+            alert('ลบข้อมูลเสร็จสิ้น');
             this.fetchData(false);
         },
         async add() {
+
+            let file = this.file;
+
+            if (file == undefined)
+                return;
+
+            let extension = '';
+
+            if (file['type'] == 'image/jpeg') {
+                extension = '.jpg';
+            } else if (file['type'] == 'image/png') {
+                extension = '.png';
+            } else {
+                return;
+            }
+
+            const imageOutput = await axios.post('https://k5lbovr518.execute-api.ap-southeast-1.amazonaws.com/admin/image', {
+                extension
+            });
+
+            await fetch(imageOutput.data.url, { method: 'PUT', body: file });
+
+            file = this.picture;
+
+            if (file == undefined)
+                return;
+
+            extension = '';
+
+            if (file['type'] == 'image/jpeg') {
+                extension = '.jpg';
+            } else if (file['type'] == 'image/png') {
+                extension = '.png';
+            } else {
+                return;
+            }
+
+            const imageOutput2 = await axios.post('https://k5lbovr518.execute-api.ap-southeast-1.amazonaws.com/admin/image', {
+                extension
+            });
+
+            await fetch(imageOutput2.data.url, { method: 'PUT', body: file });
+
             await axios.post(require('./../../host') + '/admin/work', {
                 topicId: this.selectedTopicId,
                 workId: this.workId,
                 workName: this.workName,
                 workText: this.workText,
-                workImage: this.workImage,
+                workImage: imageOutput.data.outputUrl,
                 workOwnerId: this.workOwnerId,
-                workOwnerImage: this.workOwnerImage,
+                workOwnerImage: imageOutput2.data.outputUrl,
                 workOwnerName: this.workOwnerName,
                 workOwnerJournal: this.workOwnerJournal,
                 workOwnerFacebook: this.workOwnerFacebook,
@@ -172,6 +359,7 @@ export default {
                 workOwnerEmail: this.workOwnerEmail,
                 workDescription: this.workDescription
             });
+            alert('เพิ่มข้อมูลเสร็จสิ้น');
             this.fetchData(false);
         }
     }

@@ -27,8 +27,8 @@
                     <div class="card-body text-center">
                         <h5 class="card-title">ชื่อ</h5>
                         <input type="text" class="form-control" v-model="data.specialThanks[i].personName" style="margin-bottom: 15px;">
-                        <h5 class="card-title">ลิงค์รูป</h5>
-                        <input type="text" class="form-control" v-model="data.specialThanks[i].image" style="margin-bottom: 15px;">
+                        <h5 class="card-title">รูป</h5>
+                        <Uploader :onChangeCallback="(e) => { processFiles(e, person.entityId) }" />
                         <div v-if="!isLoad2"><button style="color: white;" @click="updateSpecialThanks(person.entityId, i)" class="btn btn-warning">แก้ไข</button> <button @click="deleteSpecialThanks(person.entityId)" class="btn btn-danger">ลบ</button></div>
                     </div>
                 </div>
@@ -41,8 +41,8 @@
             <div class="card-body text-center">
                 <h5 class="card-title">ชื่อ</h5>
                 <input type="text" class="form-control" v-model="personName" style="margin-bottom: 15px;">
-                <h5 class="card-title">ลิงค์รูป</h5>
-                <input type="text" class="form-control" v-model="image" style="margin-bottom: 15px;">
+                <h5 class="card-title">รูป</h5>
+                <Uploader :onChangeCallback="processFile" />
                 <div v-if="!isLoad3"><button @click="addSpecialThanks" class="btn btn-success" style="width: 100%">เพิ่ม</button></div>
             </div>
         </div>
@@ -51,9 +51,13 @@
 
 <script>
 import axios from 'axios';
+import Uploader from './../../components/uploader.vue';
 
 export default {
     name: 'AdminAboutUs',
+    components: {
+        Uploader
+    },
     data() {
         return {
             mainKey: 0,
@@ -66,7 +70,10 @@ export default {
             showInfo: false,
             isLoad: false,
             isLoad2: false,
-            isLoad3: false
+            isLoad3: false,
+            file: undefined,
+            files: {},
+            image: ''
         }
     },
     async created() {
@@ -74,6 +81,12 @@ export default {
         this.data = data.data; 
     },
     methods: {
+        processFile(e) {
+            this.file = e.target.files[0];
+        },
+        processFiles(e, id) {
+            this.files[id] = e.target.files[0];
+        },
         async send() {
             this.showInfo = false;  
             this.isLoad = true;
@@ -87,11 +100,41 @@ export default {
         },
         async updateSpecialThanks(entityId, i) {
             this.isLoad2 = true;
-            await axios.put(require('./../../host') + '/admin/special-thanks', {
-                entityId,
-                personName: this.data.specialThanks[i].personName,
-                image: this.data.specialThanks[i].image
-            });
+
+            const file = this.files[entityId];
+
+            if (file != undefined && file != null && file != '') {
+                console.log(file)
+                let extension = '';
+
+                if (file['type'] == 'image/jpeg') {
+                    extension = '.jpg';
+                } else if (file['type'] == 'image/png') {
+                    extension = '.png';
+                } else {
+                    this.isLoad2 = false;
+                    return;
+                }
+
+                const imageOutput = await axios.post('https://k5lbovr518.execute-api.ap-southeast-1.amazonaws.com/admin/image', {
+                    extension
+                });
+
+                await fetch(imageOutput.data.url, { method: 'PUT', body: file });
+
+                await axios.put(require('./../../host') + '/admin/special-thanks', {
+                    entityId,
+                    personName: this.data.specialThanks[i].personName,
+                    image: imageOutput.data.outputUrl
+                });
+            } else {
+                console.log('Without image url');
+                await axios.put(require('./../../host') + '/admin/special-thanks', {
+                    entityId,
+                    personName: this.data.specialThanks[i].personName,
+                    image: this.data.specialThanks[i].image
+                });
+            }
             this.isLoad2 = false;
             this.$router.go()
         },
@@ -107,9 +150,34 @@ export default {
         },
         async addSpecialThanks() {
             this.isLoad3 = true;
+
+            const file = this.file;
+
+            if (file == undefined) {
+                this.isLoad3 = false;
+                return;
+            }
+
+            let extension = '';
+
+            if (file['type'] == 'image/jpeg') {
+                extension = '.jpg';
+            } else if (file['type'] == 'image/png') {
+                extension = '.png';
+            } else {
+                this.isLoad3 = false;
+                return;
+            }
+
+            const imageOutput = await axios.post('https://k5lbovr518.execute-api.ap-southeast-1.amazonaws.com/admin/image', {
+                extension
+            });
+
+            await fetch(imageOutput.data.url, { method: 'PUT', body: file });
+
             await axios.post(require('./../../host') + '/admin/special-thanks', {
                 personName: this.personName,
-                image: this.image
+                image: imageOutput.data.outputUrl
             });
             this.isLoad3 = false;
             this.$router.go()
