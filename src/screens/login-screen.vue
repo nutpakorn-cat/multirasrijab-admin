@@ -16,6 +16,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 
 export default {
   name: 'LoginScreen',
@@ -32,8 +33,13 @@ export default {
         this.$router.push('/admin/home');
   },
   methods: {
-      login() {
-          if (this.username == 'admin' && this.password == 'admin') {
+      async login() {
+          const result = await axios.post('https://k5lbovr518.execute-api.ap-southeast-1.amazonaws.com/login', {
+                username: this.username,
+                password: this.password
+            });
+            console.log(result.data)
+          if (result.data) {
               localStorage.setItem('isLogin', true);
               this.$router.push('/admin/home');
           }

@@ -9,6 +9,7 @@ import AdminAboutUs from './screens/admin/admin-about-us-screen';
 import AdminTopic from './screens/admin/admin-topic-screen';
 import AdminWork from './screens/admin/admin-work-screen';
 import AdminMedia from './screens/admin/admin-media-screen';
+import AdminPassword from './screens/admin/admin-password';
 
 const routes = [
     {
@@ -50,6 +51,10 @@ const routes = [
             {
                 path: 'media',
                 component: AdminMedia
+            },
+            {
+                path: 'change-password',
+                component: AdminPassword
             }
         ]
     },

@@ -12,6 +12,7 @@
               <router-link to="/admin/work" class="btn btn-success" style="width: 100%; margin-bottom: 10px;">เพิ่ม/จัดการข้อมูลงานนักศึกษา</router-link>
               <router-link to="/admin/media" class="btn btn-success" style="width: 100%; margin-bottom: 10px;">เพิ่ม/จัดการข้อมูลเพิ่มเติมของงานนักศึกษา</router-link>
               <hr>
+              <router-link to="/admin/change-password" class="btn btn-info" style="color: white;width: 100%; margin-bottom: 10px;">แก้ไข username password สำหรับเข้าหน้า admin</router-link>
               <button @click="logout" class="btn btn-danger" style="width: 100%; margin-bottom: 10px;">ออกจากระบบ</button>
             </div>
           </div>
