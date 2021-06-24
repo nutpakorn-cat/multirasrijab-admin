@@ -73,7 +73,7 @@ export default {
                 ['works', 'พื้นหลังเวลากดเข้าไปดูผลงาน'],
                 ['college', 'College of Social Communication Innovation Logo'],
                 ['iamd', 'IAMD Logo'],
-                ['int-logo', 'Interactive & Multimedia Design Logo'],
+                ['intlogo', 'Interactive & Multimedia Design Logo'],
                 ['facebook', 'รูป Icon Facebook'],
                 ['letsgo', 'ปุ่ม Let\'s Go'],
             ],
