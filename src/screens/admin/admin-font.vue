@@ -2,6 +2,19 @@
     <div>
         <h1>แก้ไข Font และขนาด Font</h1>
         <hr>
+        <h4 class="text-center">Font</h4>
+        <p class="text-center">รองรับ .ttf เท่านั้น</p>
+        <h5>Font ขนาด Text</h5>
+        <input type="file" @change="(e) => {onChangeFile(e, 'text')}">
+        <br><br>
+        <h5>Font ขนาด Medium</h5>
+        <input type="file" @change="(e) => {onChangeFile(e, 'medium')}">
+        <br><br>
+        <h5>Font ขนาด Bold</h5>
+        <input type="file" @change="(e) => {onChangeFile(e, 'bold')}">
+        <br><br>
+        <button class="btn btn-success" style="width: 100%" @click="uploadFont">อัพโหลด font</button>
+        <br><br><br>
         <h4 class="text-center">ขนาด Font ในหน้า Home</h4>
         <img :src="require('@/assets/home.png')" style="width: 100%;">
         <label>ขนาดหัวข้อ</label>
@@ -81,7 +94,8 @@ export default {
             home: {},
             topic: {},
             work: {},
-            about: {}
+            about: {},
+            files: {}
         }
     },
     async created() {
@@ -103,6 +117,36 @@ export default {
         this.about = about.data;
     },
     methods: {
+        onChangeFile(e, type) {
+            this.files[type] = e.target.files[0];
+        },
+        async uploadFont() {
+            if (this.files['text'] != undefined) {
+                const fontUrl = await axios.post(require('./../../host') + '/admin/upload-font', {
+                    font: 'text.ttf'
+                });
+
+                await fetch(fontUrl.data.url, { method: 'PUT', body: this.files['text'] });
+            }
+
+            if (this.files['medium'] != undefined) {
+                const fontUrl = await axios.post(require('./../../host') + '/admin/upload-font', {
+                    font: 'medium.ttf'
+                });
+
+                await fetch(fontUrl.data.url, { method: 'PUT', body: this.files['medium'] });
+            }
+
+            if (this.files['bold'] != undefined) {
+                const fontUrl = await axios.post(require('./../../host') + '/admin/upload-font', {
+                    font: 'bold.ttf'
+                });
+
+                await fetch(fontUrl.data.url, { method: 'PUT', body: this.files['bold'] });
+            }
+
+            alert('แก้ไขข้อมูลเสร็จสิ้น');
+        },
         async setHome() {
             await axios.put(require('./../../host') + '/admin/setting', {
                 tableName: 'homeSetting',
