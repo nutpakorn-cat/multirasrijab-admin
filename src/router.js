@@ -10,6 +10,8 @@ import AdminTopic from './screens/admin/admin-topic-screen';
 import AdminWork from './screens/admin/admin-work-screen';
 import AdminMedia from './screens/admin/admin-media-screen';
 import AdminPassword from './screens/admin/admin-password';
+import AdminFont from './screens/admin/admin-font';
+import AdminColor from './screens/admin/admin-color';
 
 const routes = [
     {
@@ -55,6 +57,14 @@ const routes = [
             {
                 path: 'change-password',
                 component: AdminPassword
+            },
+            {
+                path: 'font',
+                component: AdminFont
+            },
+            {
+                path: 'color',
+                component: AdminColor
             }
         ]
     },

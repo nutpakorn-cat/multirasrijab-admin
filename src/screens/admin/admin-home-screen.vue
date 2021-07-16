@@ -7,16 +7,29 @@
                 แก้ไขข้อมูลสำเร็จ
                 <button @click="() => { showInfo = false; }" type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-            <label>Embed URL ของคลิป</label>
-            <br>
-            <p>หาได้จาก</p>
-            <p>1) เข้าไปที่ https://streamable.com/upload-video แล้วอัพโหลด Video</p>
-            <p>2) เมื่อ Upload เสร็จแล้วกดปุ่ม Embed</p>
-            <img :src="require('@/assets/1.png')" width="300">
-            <p>3) ตั้งค่าตามในภาพ แล้วกด Copy Embed URL</p>
-            <img :src="require('@/assets/2.png')" width="300">
-            <p>4) กดวางที่กล่อง Embed URL ข้างล่างนี้ แล้วกดอัพเดทข้อมูล</p>
-            <label>Embed URL</label>
+            <div v-if="openHelp">
+
+                <div class="card">
+                    <div class="card-header">
+                        วิธีการอัพโหลดและหา Embed URL ของคลิป <a href="#" @click="() => { openHelp = false; }">ปิด</a>
+                    </div>
+                    <div class="card-body">
+                        <label>Embed URL ของคลิป </label>
+                        <br>
+                        <p>หาได้จาก</p>
+                        <p>1) เข้าไปที่ https://streamable.com/upload-video แล้วอัพโหลด Video</p>
+                        <p>2) เมื่อ Upload เสร็จแล้วกดปุ่ม Embed</p>
+                        <img :src="require('@/assets/1.png')" width="300">
+                        <br><br>
+                        <p>3) ตั้งค่าตามในภาพ แล้วกด Copy Embed URL</p>
+                        <img :src="require('@/assets/2.png')" width="300">
+                        <br><br>
+                        <p>4) กดวางที่กล่อง Embed URL ข้างล่างนี้ แล้วกดอัพเดทข้อมูล</p>
+                    </div>
+                </div>
+                <br>
+            </div>
+            <label>Embed URL <a v-if="!openHelp" href="#" @click="() => { openHelp = true; }">วิธีการหา Embed URL</a></label>
             <input type="text" class="form-control" v-model="data.mediaClip">
             <br>
             <label>หัวข้อ</label>
@@ -80,7 +93,8 @@ export default {
             files: {},
             graphic: {},
             showInfo: false,
-            isLoad: false
+            isLoad: false,
+            openHelp: false
         }
     },
     async created() {
