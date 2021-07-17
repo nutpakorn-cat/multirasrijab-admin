@@ -5,7 +5,7 @@
           <div class="card">
             <div class="card-body">
               <router-link to="/admin/home" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">แก้ไขหน้า Home</router-link>
-              <router-link to="/admin/font" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">แก้ไข Font และขนาด Font</router-link>
+              <router-link to="/admin/font" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">แก้ไขชนิด Font สีและขนาด Font</router-link>
               <router-link to="/admin/color" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">แก้ไขสีของระบบ</router-link>
               <router-link to="/admin/about-us" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">แก้ไขหน้า About Us</router-link>
               <router-link to="/admin/footer" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">แก้ไขแถบ Footer ด้านล่าง</router-link>
